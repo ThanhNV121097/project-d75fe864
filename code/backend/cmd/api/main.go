@@ -84,8 +84,8 @@ func migrate(ctx context.Context, db *pgxpool.Pool) error {
 			continue
 		}
 		version := strings.TrimSuffix(name, ".up.sql")
-		path := "../../migrations/" + name
-		body, err := migrationFiles.ReadFile(path)
+		path := name
+		body, err := migrations.Files.ReadFile(path)
 		if err != nil {
 			return err
 		}

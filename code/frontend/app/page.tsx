@@ -7,8 +7,7 @@ type DisplayTextResponse = {
 };
 
 export default async function Home() {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://backend:8080';
-  const res = await fetch(`${apiBase}/v1/display-text`, { cache: 'no-store' });
+  const res = await fetch('http://backend:8080/v1/display-text', { cache: 'no-store' });
   const body = (await res.json()) as DisplayTextResponse;
 
   return <HelloPage text={body.data.text} />;

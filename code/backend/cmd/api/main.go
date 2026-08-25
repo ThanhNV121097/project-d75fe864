@@ -93,14 +93,11 @@ func (a app) displayText(w http.ResponseWriter, r *http.Request) {
 
 	var text string
 	if err := a.db.QueryRow(ctx, `SELECT value FROM display_texts WHERE id = 1`).Scan(&text); err != nil {
-		switch {
-		case errors.Is(err, pgx.ErrNoRows):
+		if errors.Is(err, pgx.ErrNoRows) {
 			writeError(w, http.StatusNotFound, "not_found", "not found")
-		case isServiceUnavailable(err):
-			writeError(w, http.StatusServiceUnavailable, "service_unavailable", "service unavailable")
-		default:
-			writeError(w, http.StatusInternalServerError, "internal_error", "internal error")
+			return
 		}
+		writeError(w, http.StatusInternalServerError, "internal_error", "internal error")
 		return
 	}
 

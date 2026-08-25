@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from 'react';
+
 import { HelloPage } from '../components/HelloPage';
 
 type DisplayTextResponse = {
@@ -6,9 +10,21 @@ type DisplayTextResponse = {
   };
 };
 
-export default async function Home() {
-  const res = await fetch('http://backend:8080/v1/display-text', { cache: 'no-store' });
-  const body = (await res.json()) as DisplayTextResponse;
+const apiBase = process.env.NEXT_PUBLIC_API_URL ?? '/api';
 
-  return <HelloPage text={body.data.text} />;
+export default function Home() {
+  const [text, setText] = useState('');
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch(`${apiBase}/v1/display-text`, { cache: 'no-store', signal: controller.signal })
+      .then((res) => res.json() as Promise<DisplayTextResponse>)
+      .then((body) => setText(body.data.text))
+      .catch(() => {});
+
+    return () => controller.abort();
+  }, []);
+
+  return <HelloPage text={text} />;
 }

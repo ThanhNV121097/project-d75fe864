@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 import { HelloPage } from '../components/HelloPage';
 
 type DisplayTextResponse = {
@@ -6,21 +8,35 @@ type DisplayTextResponse = {
   };
 };
 
-const apiBase = process.env.API_ORIGIN ?? 'http://backend:8080';
+const apiBase = process.env.NEXT_PUBLIC_API_URL ?? '/api';
 
-async function loadDisplayText() {
-  const res = await fetch(`${apiBase}/v1/display-text`, {
-    cache: 'no-store',
-  });
+export default function Home() {
+  const [text, setText] = useState('');
 
-  if (!res.ok) {
-    throw new Error('failed to load display text');
-  }
+  useEffect(() => {
+    let alive = true;
 
-  return (await res.json()) as DisplayTextResponse;
-}
+    async function loadDisplayText() {
+      const res = await fetch(`${apiBase}/v1/display-text`, {
+        cache: 'no-store',
+      });
 
-export default async function Home() {
-  const body = await loadDisplayText();
-  return <HelloPage text={body.data.text} />;
+      if (!res.ok) {
+        return;
+      }
+
+      const body = (await res.json()) as DisplayTextResponse;
+      if (alive) {
+        setText(body.data.text);
+      }
+    }
+
+    void loadDisplayText();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  return <HelloPage text={text} />;
 }

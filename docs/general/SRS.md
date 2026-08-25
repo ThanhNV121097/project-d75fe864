@@ -52,6 +52,9 @@ Behaviour:
 2. When the backend returns the stored value, the page renders that exact text
    in the center of the viewport.
 3. When the stored value is `Hello Word`, the page shows `Hello Word`.
+4. When the stored row cannot be read because the API or database is unavailable,
+   the page returns the same failure response defined by the backend service
+   contract and does not substitute a hardcoded greeting.
 
 **Acceptance criteria** — each maps one-to-one onto a test case in
 `docs/general/test-cases/build-hello-page-end-to-end.md`.
@@ -60,6 +63,7 @@ Behaviour:
 |---|---|---|---|
 | AC-1 | Stored value is `Hello Word` | Guest opens page | Text `Hello Word` appears on page |
 | AC-2 | Stored value changes to another single-line string | Guest refreshes page | Page shows changed stored string |
+| AC-3 | Database contains exactly one persisted display-text row | Guest opens page | Page renders the value from that single row and not a hardcoded literal or list |
 
 **Failure, boundary and permission behaviour**
 
@@ -67,7 +71,7 @@ Behaviour:
 |---|---|---|
 | Not applicable | No roles or writes exist in this module | Guest access only; no permission matrix needed |
 | Not applicable | Approved design shows one static screen only | No loading, empty, or error state is part of approved design |
-| Upstream failure | Backend or database unavailable | Error presentation is not part of approved design; service contract defines failure envelope |
+| Upstream failure | Backend or database unavailable | Backend returns the service-contract failure response; frontend shows no alternate copy or fallback text |
 | Boundary | Stored text is any single short line | Page displays that line centered, without truncation rules beyond browser defaults |
 
 **Data touched**
@@ -87,8 +91,8 @@ Behaviour:
 
 | Area | Requirement |
 |---|---|
-| Performance | Page renders the stored text within 1s at p95 on 1 Mbps cold cache after API response starts |
-| Accessibility | Text remains keyboard unreachable because it is read-only; contrast is at least 4.5:1; page has visible centered heading text |
+| Performance | With warm API response and warm browser cache, the page shows the centered text within 1 second at p95 on a 1 Mbps connection. |
+| Accessibility | The displayed text is plain static content, receives no keyboard focus, and is reachable by screen readers as visible page text; contrast between text and background is at least 4.5:1. |
 | Responsive | Layout stays centered at 320px width and above with no horizontal scroll |
 | Privacy | No personal data is stored or displayed; only one public text row is read |
 
@@ -109,3 +113,4 @@ Behaviour:
 | Plan item | Requirement ids | Test cases |
 |---|---|---|
 | Build hello page end to end | GENERAL-001 | `test-cases/build-hello-page-end-to-end.md` |
+

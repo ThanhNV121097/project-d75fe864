@@ -97,7 +97,7 @@ func (a app) displayText(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, pgx.ErrNoRows):
 			writeError(w, http.StatusNotFound, "not_found", "not found")
 		default:
-			writeError(w, http.StatusServiceUnavailable, "service_unavailable", "service unavailable")
+			writeError(w, http.StatusInternalServerError, "internal_error", "internal error")
 		}
 		return
 	}

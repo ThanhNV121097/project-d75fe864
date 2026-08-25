@@ -1,10 +1,9 @@
 import styles from './HelloPage.module.css';
-import { displayTextResponse } from '../lib/mock/build-hello-page-end-to-end';
 
-export function HelloPage() {
+export function HelloPage({ text }: { text: string }) {
   return (
     <main className={styles.helloPage} aria-label="Hello Word display">
-      <h1 className={styles.text}>{displayTextResponse.data.text}</h1>
+      <h1 className={styles.text}>{text}</h1>
     </main>
   );
 }

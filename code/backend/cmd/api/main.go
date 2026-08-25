@@ -105,10 +105,6 @@ func (a app) displayText(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(displayTextResponse{Data: struct{ Text string `json:"text"` }{Text: text}})
 }
 
-func isServiceUnavailable(err error) bool {
-	return errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled)
-}
-
 func writeError(w http.ResponseWriter, status int, code, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

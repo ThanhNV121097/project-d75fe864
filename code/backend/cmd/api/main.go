@@ -151,10 +151,6 @@ func applyMigration(ctx context.Context, db *pgxpool.Pool, version, sql string) 
 		return err
 	}
 
-	if _, err := tx.Exec(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations (version text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
-		return err
-	}
-
 	var applied bool
 	if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM schema_migrations WHERE version = $1)`, version).Scan(&applied); err != nil {
 		return err

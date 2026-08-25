@@ -96,14 +96,20 @@ func (a app) displayText(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
 			writeError(w, http.StatusNotFound, "not_found", "not found")
-		default:
+		case isServiceUnavailable(err):
 			writeError(w, http.StatusServiceUnavailable, "service_unavailable", "service unavailable")
+		default:
+			writeError(w, http.StatusInternalServerError, "internal_error", "internal error")
 		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(displayTextResponse{Data: struct{ Text string `json:"text"` }{Text: text}})
+}
+
+func isServiceUnavailable(err error) bool {
+	return errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled)
 }
 
 func writeError(w http.ResponseWriter, status int, code, message string) {

@@ -89,6 +89,11 @@ func (a app) healthz(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a app) displayText(w http.ResponseWriter, r *http.Request) {
+	if len(r.URL.Query()) > 0 {
+		writeError(w, http.StatusBadRequest, "internal_error", "internal error")
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 	defer cancel()
 

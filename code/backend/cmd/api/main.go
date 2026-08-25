@@ -96,10 +96,8 @@ func (a app) displayText(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
 			writeError(w, http.StatusNotFound, "not_found", "not found")
-		case errors.Is(err, context.DeadlineExceeded):
-			writeError(w, http.StatusServiceUnavailable, "service_unavailable", "service unavailable")
 		default:
-			writeError(w, http.StatusInternalServerError, "internal_error", "internal error")
+			writeError(w, http.StatusServiceUnavailable, "service_unavailable", "service unavailable")
 		}
 		return
 	}

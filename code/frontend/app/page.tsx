@@ -1,7 +1,3 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-
 import { HelloPage } from '../components/HelloPage';
 
 type DisplayTextResponse = {
@@ -10,31 +6,21 @@ type DisplayTextResponse = {
   };
 };
 
-const apiBase = process.env.NEXT_PUBLIC_API_URL ?? '/api';
+const apiBase = process.env.API_ORIGIN ?? 'http://backend:8080';
 
-export default function Home() {
-  const [text, setText] = useState('');
+async function loadDisplayText() {
+  const res = await fetch(`${apiBase}/v1/display-text`, {
+    cache: 'no-store',
+  });
 
-  useEffect(() => {
-    const controller = new AbortController();
+  if (!res.ok) {
+    throw new Error('failed to load display text');
+  }
 
-    fetch(`${apiBase}/v1/display-text`, {
-      cache: 'no-store',
-      signal: controller.signal,
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error('failed to load display text');
-        }
-        return res.json() as Promise<DisplayTextResponse>;
-      })
-      .then((body) => setText(body.data.text))
-      .catch(() => {
-        setText('');
-      });
+  return (await res.json()) as DisplayTextResponse;
+}
 
-    return () => controller.abort();
-  }, []);
-
-  return <HelloPage text={text} />;
+export default async function Home() {
+  const body = await loadDisplayText();
+  return <HelloPage text={body.data.text} />;
 }

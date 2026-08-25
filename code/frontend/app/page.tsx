@@ -1,6 +1,8 @@
-import { HelloPage } from '../components/HelloPage';
+'use client';
 
-export const dynamic = 'force-dynamic';
+import { useEffect, useState } from 'react';
+
+import { HelloPage } from '../components/HelloPage';
 
 type DisplayTextResponse = {
   data: {
@@ -10,13 +12,29 @@ type DisplayTextResponse = {
 
 const apiBase = process.env.NEXT_PUBLIC_API_URL ?? '/api';
 
-export default async function Home() {
-  const res = await fetch(`${apiBase}/v1/display-text`, { cache: 'no-store' });
-  if (!res.ok) {
-    throw new Error('failed to load display text');
-  }
+export default function Home() {
+  const [text, setText] = useState('');
 
-  const body = (await res.json()) as DisplayTextResponse;
+  useEffect(() => {
+    const controller = new AbortController();
 
-  return <HelloPage text={body.data.text} />;
+    fetch(`${apiBase}/v1/display-text`, {
+      cache: 'no-store',
+      signal: controller.signal,
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('failed to load display text');
+        }
+        return res.json() as Promise<DisplayTextResponse>;
+      })
+      .then((body) => setText(body.data.text))
+      .catch(() => {
+        setText('');
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  return <HelloPage text={text} />;
 }

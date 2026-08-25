@@ -1,19 +1,20 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { HelloPage } from '../components/HelloPage';
 
-async function loadDisplayText() {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? '/api';
-  const res = await fetch(`${apiBase}/v1/display-text`, { cache: 'no-store' });
+export default function Home() {
+  const [text, setText] = useState('');
 
-  if (!res.ok) {
-    return 'Hello Word';
-  }
-
-  const body = (await res.json()) as { data?: { text?: string } };
-  return body.data?.text ?? 'Hello Word';
-}
-
-export default async function Home() {
-  const text = await loadDisplayText();
+  useEffect(() => {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? '/api';
+    fetch(`${apiBase}/v1/display-text`, { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body: { data?: { text?: string } } | null) => {
+        setText(body?.data?.text ?? '');
+      })
+      .catch(() => setText(''));
+  }, []);
 
   return <HelloPage text={text} />;
 }

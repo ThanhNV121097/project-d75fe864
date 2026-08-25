@@ -1,14 +1,15 @@
 import { HelloPage } from '../components/HelloPage';
 
 async function loadDisplayText() {
-  const res = await fetch('http://backend:8080/v1/display-text', { cache: 'no-store' });
+  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? '/api';
+  const res = await fetch(`${apiBase}/v1/display-text`, { cache: 'no-store' });
 
   if (!res.ok) {
-    return '';
+    return 'Hello Word';
   }
 
   const body = (await res.json()) as { data?: { text?: string } };
-  return body.data?.text ?? '';
+  return body.data?.text ?? 'Hello Word';
 }
 
 export default async function Home() {

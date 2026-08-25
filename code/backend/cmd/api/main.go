@@ -92,9 +92,17 @@ func (a app) displayText(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	var text string
-	if err := a.db.QueryRow(ctx, `SELECT value FROM display_texts WHERE id = 1`).Scan(&text); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			writeError(w, http.StatusNotFound, "not_found", "not found")
+			return
+		}
+		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+			writeError(w, http.StatusServiceUnavailable, "service_unavailable", "service unavailable")
+			return
+		}
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			writeError(w, http.StatusServiceUnavailable, "service_unavailable", "service unavailable")
 			return
 		}
 		writeError(w, http.StatusInternalServerError, "internal_error", "internal error")

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -12,10 +13,24 @@ import (
 	"time"
 
 	"github.com/ThanhNV121097/project-d75fe864/backend/migrations"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type app struct{ db *pgxpool.Pool }
+
+type errorResponse struct {
+	Error struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+	} `json:"error"`
+}
+
+type displayTextResponse struct {
+	Data struct {
+		Text string `json:"text"`
+	} `json:"data"`
+}
 
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -42,6 +57,7 @@ func main() {
 	a := app{db: db}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", a.healthz)
+	mux.HandleFunc("GET /v1/display-text", a.displayText)
 
 	addr := ":" + port()
 	log.Printf("listening on %s", addr)
@@ -64,11 +80,39 @@ func (a app) healthz(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 	defer cancel()
 	if err := a.db.Ping(ctx); err != nil {
-		http.Error(w, "unhealthy", http.StatusServiceUnavailable)
+		writeError(w, http.StatusServiceUnavailable, "service_unavailable", "service unavailable")
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	_, _ = w.Write([]byte("ok\n"))
+	_, _ = w.Write([]byte("ok"))
+}
+
+func (a app) displayText(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	defer cancel()
+
+	var text string
+	if err := a.db.QueryRow(ctx, `SELECT value FROM display_texts WHERE id = 1`).Scan(&text); err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			writeError(w, http.StatusNotFound, "not_found", "not found")
+		default:
+			writeError(w, http.StatusServiceUnavailable, "service_unavailable", "service unavailable")
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(displayTextResponse{Data: struct{ Text string `json:"text"` }{Text: text}})
+}
+
+func writeError(w http.ResponseWriter, status int, code, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	var resp errorResponse
+	resp.Error.Code = code
+	resp.Error.Message = message
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
 func migrate(ctx context.Context, db *pgxpool.Pool) error {

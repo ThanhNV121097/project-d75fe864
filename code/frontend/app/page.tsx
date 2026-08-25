@@ -1,5 +1,7 @@
 import { HelloPage } from '../components/HelloPage';
 
+export const dynamic = 'force-dynamic';
+
 type DisplayTextResponse = {
   data: {
     text: string;

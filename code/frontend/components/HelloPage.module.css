@@ -1,0 +1,16 @@
+.helloPage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl-line-height);
+  font-weight: var(--text-3xl-weight);
+  text-align: center;
+}
